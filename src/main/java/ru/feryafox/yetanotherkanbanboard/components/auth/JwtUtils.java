@@ -2,6 +2,7 @@ package ru.feryafox.yetanotherkanbanboard.components.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtUtils {
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -57,9 +59,18 @@ public class JwtUtils {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
-            e.printStackTrace();
+        } catch (ExpiredJwtException e) {
+            log.debug("Token has expired: {}", e.getMessage());
+            throw e;
+        } catch (MalformedJwtException e) {
+            log.debug("Invalid JWT token: {}", e.getMessage());
+            throw e;
+        } catch (UnsupportedJwtException e) {
+            log.debug("Unsupported JWT token: {}", e.getMessage());
+            throw e;
+        } catch (IllegalArgumentException e) {
+            log.debug("JWT claims string is empty: {}", e.getMessage());
+            throw e;
         }
-        return false;
     }
 }

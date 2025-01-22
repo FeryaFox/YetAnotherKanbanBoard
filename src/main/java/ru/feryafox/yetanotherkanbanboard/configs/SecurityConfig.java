@@ -25,11 +25,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Использование нового API для отключения CSRF
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/**").permitAll() // Доступ к /auth/**
-                        .requestMatchers("/user/info").hasRole("USER")
-                        .anyRequest().authenticated()           // Все остальные запросы требуют авторизации
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/user/**", "/board/**").hasRole("USER")
+                        .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

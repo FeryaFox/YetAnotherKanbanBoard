@@ -1,4 +1,4 @@
-package ru.feryafox.yetanotherkanbanboard.controllers;
+package ru.feryafox.yetanotherkanbanboard.controllers.auth;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;

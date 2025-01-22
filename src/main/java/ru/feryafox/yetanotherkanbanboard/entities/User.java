@@ -1,5 +1,6 @@
 package ru.feryafox.yetanotherkanbanboard.entities;
 
+
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -7,6 +8,8 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -17,19 +20,19 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @jakarta.persistence.Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @jakarta.persistence.Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @jakarta.persistence.Column(nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @jakarta.persistence.Column(nullable = false)
     private String surname;
 
-    @Column(nullable = false)
+    @jakarta.persistence.Column(nullable = false)
     private String middleName;
 
     private String roles = "ROLE_USER";
@@ -38,6 +41,27 @@ public class User implements UserDetails {
     private boolean isAccountNonExpired = true;
     private boolean isAccountNonLocked = true;
     private boolean isCredentialsNonExpired = true;
+
+    @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL)
+    Set<Card> cardsOwned;
+
+    @OneToMany(mappedBy = "boardOwner", orphanRemoval = true)
+    private Set<Board> boardsOwned = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "users_accessible_boards",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "boards_id"))
+    private Set<Board> boardsAccessible = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Column> createdColumns = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "cards_responsible_user",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "card_id"))
+    private Set<Card> cardsResponsibled = new LinkedHashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -73,7 +97,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return isEnabled;
     }
-
-    // Геттеры и сеттеры для остальных полей
 }
 

@@ -1,45 +1,36 @@
-package ru.feryafox.yetanotherkanbanboard.controllers;
+package ru.feryafox.yetanotherkanbanboard.services;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 import ru.feryafox.yetanotherkanbanboard.components.auth.JwtUtils;
 import ru.feryafox.yetanotherkanbanboard.entities.User;
-import ru.feryafox.yetanotherkanbanboard.models.*;
+import ru.feryafox.yetanotherkanbanboard.models.auth.AuthResponse;
+import ru.feryafox.yetanotherkanbanboard.models.auth.LoginRequest;
+import ru.feryafox.yetanotherkanbanboard.models.auth.RefreshRequest;
+import ru.feryafox.yetanotherkanbanboard.models.auth.RegistrationRequest;
 import ru.feryafox.yetanotherkanbanboard.repositories.UserRepository;
 
-@RestController
-@RequestMapping("/auth")
-public class AuthController {
-
+@Service
+public class UserService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
-    private final UserDetailsService userDetailsService;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    public AuthController(
-            AuthenticationManager authenticationManager,
-            JwtUtils jwtUtils,
-            UserDetailsService userDetailsService,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder
-    ) {
+    public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
-        this.userDetailsService = userDetailsService;
-        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public AuthResponse login(LoginRequest loginRequest) {
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
         );
@@ -48,24 +39,23 @@ public class AuthController {
         String jwtToken = jwtUtils.generateToken(loginRequest.getUsername());
         String refreshToken = jwtUtils.generateRefreshToken(loginRequest.getUsername());
 
-        return ResponseEntity.ok(new AuthResponse(jwtToken, refreshToken));
+        return new AuthResponse(jwtToken, refreshToken);
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshRequest refreshRequest) {
+    public AuthResponse refresh(RefreshRequest refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
         if (jwtUtils.validateToken(refreshToken)) {
             String username = jwtUtils.getUsernameFromToken(refreshToken);
             String newToken = jwtUtils.generateToken(username);
-            return ResponseEntity.ok(new AuthResponse(newToken, refreshToken));
+            return new AuthResponse(refreshToken, newToken);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+        return null;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegistrationRequest registrationRequest) {
+    public boolean register(RegistrationRequest registrationRequest) {
+
         if (userRepository.existsByUsername(registrationRequest.getUsername())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username is already taken");
+            return false;
         }
 
         User user = new User();
@@ -78,6 +68,6 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+        return true;
     }
 }
