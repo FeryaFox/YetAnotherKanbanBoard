@@ -4,7 +4,6 @@ import lombok.Value;
 import ru.feryafox.yetanotherkanbanboard.entities.Column;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 /**

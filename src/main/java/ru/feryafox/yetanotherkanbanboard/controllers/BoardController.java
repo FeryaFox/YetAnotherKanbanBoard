@@ -1,6 +1,7 @@
 package ru.feryafox.yetanotherkanbanboard.controllers;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,10 +30,10 @@ public class BoardController {
    public ResponseEntity<?> createBoard(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateBoardDto createBoardDto) {
         long boardId = boardService.createBoard(createBoardDto, userDetails);
 
-        return ResponseEntity.ok(boardId);
+        return new ResponseEntity<>(boardId, HttpStatus.CREATED);
    }
 
-   @PatchMapping("/{id}/title")
+   @PatchMapping("/{id}")
    public ResponseEntity<?> updateBoardTitle(@AuthenticationPrincipal UserDetails userDetails, @PathVariable long id, @RequestBody UpdateBoardTitleDto updateBoardTitleDto) {
         boardService.updateBoardTitle(id, updateBoardTitleDto.getTitle(), userDetails);
         return ResponseEntity.noContent().build();

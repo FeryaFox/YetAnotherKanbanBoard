@@ -16,5 +16,7 @@ public class CardDto implements Serializable {
     String title;
     String content;
     Set<UserBoardInfoDto> userResponsible;
+    Integer number;
+
 // TODO добавить Swagger Аннотации
 }

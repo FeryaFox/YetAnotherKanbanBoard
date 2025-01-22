@@ -16,4 +16,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     WHERE b.id = :boardId AND (:userId IN (b.boardOwner.id, u.id))
     """)
     Optional<Board> findBoardWithAccess(@Param("boardId") Long boardId, @Param("userId") Long userId);
+
+    Board getBoardById(Long id);
 }

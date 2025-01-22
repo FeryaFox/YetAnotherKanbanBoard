@@ -14,6 +14,8 @@ import java.util.Set;
 @ToString
 @RequiredArgsConstructor
 @Table(name = "columns")
+@Builder
+@AllArgsConstructor
 public class Column {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +26,7 @@ public class Column {
 
     @ManyToOne
     @JoinColumn(name = "board_id", nullable = false)
-    private Board board_id;
+    private Board board;
 
     @OneToMany(mappedBy = "column")
     @ToString.Exclude

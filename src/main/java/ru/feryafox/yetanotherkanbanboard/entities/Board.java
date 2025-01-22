@@ -26,7 +26,7 @@ public class Board {
     private String title;
     
 
-    @OneToMany(mappedBy = "board_id")
+    @OneToMany(mappedBy = "board")
     @ToString.Exclude
     private Set<Column> columns;
 
