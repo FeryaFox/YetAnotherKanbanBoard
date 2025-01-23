@@ -27,5 +27,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
         LEFT JOIN FETCH u.createdColumns c
         WHERE u.username = :username AND c.id = :columnId
     """)
-    Optional<User> getUserByColumnId(@Param("username") String username, @Param("colunmId") Long columnId);
+    Optional<User> getUserByColumnId(@Param("username") String username, @Param("columnId") Long columnId);
 }

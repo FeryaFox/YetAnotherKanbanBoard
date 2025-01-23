@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class MoveCardDto {
     private Long newColumn;
-    private Long newPosition;
+    private Integer newPosition;
 }
