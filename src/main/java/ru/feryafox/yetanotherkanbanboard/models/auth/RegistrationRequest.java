@@ -11,7 +11,7 @@ public class RegistrationRequest {
 
     @Schema(description = "Имя пользователя", example = "super_username")
     @NotBlank(message = "Имя пользователя не может быть пустым")
-    private String username;
+    private String login;
 
     @Schema(description = "Пароль (от 8 до 255 символов)", example = "my_secret_password")
     @NotBlank(message = "Пароль не может быть пустым")
@@ -20,7 +20,7 @@ public class RegistrationRequest {
 
     @Schema(description = "Имя", example = "Иванов")
     @NotBlank(message = "Имя не может быть пустым")
-    private String firstName;
+    private String name;
 
     @Schema(description = "Фамилия", example = "Иванов")
     @NotBlank(message = "Фамилия не может быть пустой")

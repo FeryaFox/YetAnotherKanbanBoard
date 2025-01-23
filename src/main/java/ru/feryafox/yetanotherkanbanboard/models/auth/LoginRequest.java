@@ -11,7 +11,7 @@ public class LoginRequest {
     @Schema(description = "Имя пользователя", example = "admin")
     @Size(min = 5, max = 50, message = "Имя пользователя должно содержать от 5 до 50 символов")
     @NotBlank(message = "Имя пользователя не может быть пустыми")
-    private String username;
+    private String login;
 
     @Schema(description = "Пароль", example = "my_1secret1_password")
     @Size(min = 8, max = 255, message = "Длина пароля должна быть от 8 до 255 символов")

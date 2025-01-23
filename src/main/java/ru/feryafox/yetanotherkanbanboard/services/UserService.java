@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.feryafox.yetanotherkanbanboard.components.auth.JwtUtils;
 import ru.feryafox.yetanotherkanbanboard.entities.Board;
-import ru.feryafox.yetanotherkanbanboard.entities.Card;
+import ru.feryafox.yetanotherkanbanboard.models.UserInfoResponse;
 import ru.feryafox.yetanotherkanbanboard.repositories.CardRepository;
 import ru.feryafox.yetanotherkanbanboard.entities.User;
 import ru.feryafox.yetanotherkanbanboard.models.auth.AuthResponse;
@@ -40,12 +40,12 @@ public class UserService {
     public AuthResponse login(LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwtToken = jwtUtils.generateToken(loginRequest.getUsername());
-        String refreshToken = jwtUtils.generateRefreshToken(loginRequest.getUsername());
+        String jwtToken = jwtUtils.generateToken(loginRequest.getLogin());
+        String refreshToken = jwtUtils.generateRefreshToken(loginRequest.getLogin());
 
         return new AuthResponse(jwtToken, refreshToken);
     }
@@ -62,14 +62,14 @@ public class UserService {
 
     public boolean register(RegistrationRequest registrationRequest) {
 
-        if (userRepository.existsByUsername(registrationRequest.getUsername())) {
+        if (userRepository.existsByUsername(registrationRequest.getLogin())) {
             return false;
         }
 
         User user = new User();
-        user.setUsername(registrationRequest.getUsername());
+        user.setUsername(registrationRequest.getLogin());
         user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-        user.setFirstName(registrationRequest.getFirstName());
+        user.setFirstName(registrationRequest.getName());
         user.setSurname(registrationRequest.getSurname());
         user.setMiddleName(registrationRequest.getMiddleName());
         user.setRoles("ROLE_USER");
@@ -104,5 +104,19 @@ public class UserService {
         User user = userRepository.getUserByColumnId(username, columnId).orElse(null);
 
         return user != null && user.getUsername().equals(username);
+    }
+
+    public UserInfoResponse getUserInfo(String login) {
+        User user = userRepository.findUserByUsername(login);
+
+        UserInfoResponse.UserInfoResponseBuilder builder = UserInfoResponse.builder();
+
+        builder.id(user.getId());
+        builder.login(user.getUsername());
+        builder.name(user.getFirstName());
+        builder.surname(user.getSurname());
+        builder.middleName(user.getMiddleName());
+
+        return builder.build();
     }
 }

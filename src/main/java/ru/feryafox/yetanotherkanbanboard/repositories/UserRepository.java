@@ -28,4 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         WHERE u.username = :username AND c.id = :columnId
     """)
     Optional<User> getUserByColumnId(@Param("username") String username, @Param("columnId") Long columnId);
+
+    Optional<User> getUserById(Long id);
 }
