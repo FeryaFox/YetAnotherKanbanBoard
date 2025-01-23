@@ -1,5 +1,6 @@
 package ru.feryafox.yetanotherkanbanboard.controllers.auth;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,9 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(userService.getUserInfo(userDetails.getUsername()));
+    public ResponseEntity<UserInfoResponse> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
+        return new ResponseEntity<>(userService.getUserInfo(userDetails.getUsername()), HttpStatus.OK);
     }
-
-
 }
