@@ -61,7 +61,6 @@ public class UserService {
     }
 
     public boolean register(RegistrationRequest registrationRequest) {
-
         if (userRepository.existsByUsername(registrationRequest.getLogin())) {
             return false;
         }

@@ -25,7 +25,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @jakarta.persistence.Column(unique = true, nullable = false)
+    @jakarta.persistence.Column(unique = true, nullable = false, name = "username")
     private String username;
 
     @jakarta.persistence.Column(nullable = false)
