@@ -47,7 +47,7 @@ public class CardService {
         cardBuilder.content(createCardDto.getContent());
         cardBuilder.column(column);
         cardBuilder.userOwner(user);
-        cardBuilder.number(createCardDto.getNumber()); // TODO добавить проверку, что такой номер не занят
+        cardBuilder.position(column.getCards().size() + 1);
 
         Card savedCard = cardRepository.save(cardBuilder.build());
 

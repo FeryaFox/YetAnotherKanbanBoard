@@ -21,8 +21,8 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @jakarta.persistence.Column(name = "number")
-    private Integer number;
+    @jakarta.persistence.Column(name = "position")
+    private Integer position;
 
     @jakarta.persistence.Column(name = "title")
     private String title;

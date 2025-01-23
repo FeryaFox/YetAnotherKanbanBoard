@@ -8,5 +8,4 @@ public class CreateCardDto {
     private String content;
     private Long boardId;
     private Long columnId;
-    private Integer number;
 }

@@ -1,1 +1,1 @@
-ALTER TABLE cards ADD number int;
+ALTER TABLE cards ADD position int;

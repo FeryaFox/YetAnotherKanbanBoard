@@ -44,7 +44,7 @@ public class BoardMapper {
                 card.getUserResponsible().stream()
                         .map(this::toDto)
                         .collect(Collectors.toSet()),
-                card.getNumber()
+                card.getPosition()
         );
     }
 

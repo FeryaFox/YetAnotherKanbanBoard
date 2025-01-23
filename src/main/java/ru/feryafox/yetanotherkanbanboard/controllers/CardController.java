@@ -30,6 +30,9 @@ public class CardController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+//    @PatchMapping("/{id}/move")
+//    public ResponseEntity<?> moveCard()
+
     // TODO добавить перемещение карт
 
 }
