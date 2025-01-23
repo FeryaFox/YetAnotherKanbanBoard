@@ -38,7 +38,7 @@ public class Card {
     @JoinColumn(name = "user_owner_id")
     private User userOwner;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "cards_responsible_user",
             joinColumns = @JoinColumn(name = "card_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))

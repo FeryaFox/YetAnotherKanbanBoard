@@ -34,4 +34,10 @@ public class CardController {
         cardService.moveCard(id, moveCardDto, userDetails.getUsername());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCard(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        cardService.deleteCard(id, userDetails.getUsername());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

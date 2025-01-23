@@ -99,6 +99,26 @@ public class CardService {
         cardRepository.save(card);
     }
 
+    @Transactional
+    public void deleteCard(Long cardId, String username) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new IllegalArgumentException("Card not found"));
+
+        cardRepository.delete(card);
+
+        Column column = card.getColumn();
+        column.getCards().remove(card);
+
+        List<Card> sortedCards = column.getCards().stream()
+                .sorted(Comparator.comparing(Card::getPosition))
+                .toList();
+        for (int i = 0; i < sortedCards.size(); i++) {
+            sortedCards.get(i).setPosition(i + 1);
+        }
+
+        columnRepository.save(column);
+    }
+
     private Column getColumn(Long columnId) {
         return columnRepository.findById(columnId).orElseThrow(
                 () -> new IllegalArgumentException("Column does not exist")
@@ -146,11 +166,15 @@ public class CardService {
     }
 
     private void validateAccess(Long cardId, Long columnId, String username) {
-        if (!userService.isCardAccessible(cardId, username)) {
-            throw new AccessDeniedException("User does not have access to this card");
-        }
+        validateAccess(cardId, username);
         if (!userService.isColumnAccessible(columnId, username)) {
             throw new AccessDeniedException("User does not have access to this column");
+        }
+    }
+
+    private void validateAccess(Long cardId, String username) {
+        if (!userService.isCardAccessible(cardId, username)) {
+            throw new AccessDeniedException("User does not have access to this card");
         }
     }
 }
