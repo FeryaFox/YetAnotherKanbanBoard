@@ -78,7 +78,7 @@ public class CardService {
     @Transactional
     public void moveCard(Long cardId, MoveCardDto moveCardDto, String username){
 
-        validateAccess(cardId, moveCardDto, username);
+        validateAccess(cardId, moveCardDto.getNewColumn(), username);
 
         Card card = getCard(cardId);
 
@@ -145,11 +145,11 @@ public class CardService {
         }
     }
 
-    private void validateAccess(Long cardId, MoveCardDto moveCardDto, String username) {
+    private void validateAccess(Long cardId, Long columnId, String username) {
         if (!userService.isCardAccessible(cardId, username)) {
             throw new AccessDeniedException("User does not have access to this card");
         }
-        if (!userService.isColumnAccessible(moveCardDto.getNewColumn(), username)) {
+        if (!userService.isColumnAccessible(columnId, username)) {
             throw new AccessDeniedException("User does not have access to this column");
         }
     }
