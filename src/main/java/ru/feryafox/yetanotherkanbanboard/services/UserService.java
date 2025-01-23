@@ -38,14 +38,17 @@ public class UserService {
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
+        return login(loginRequest.getLogin(), loginRequest.getPassword());
+    }
 
+    public AuthResponse login(String login, String password) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(login, password)
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwtToken = jwtUtils.generateToken(loginRequest.getLogin());
-        String refreshToken = jwtUtils.generateRefreshToken(loginRequest.getLogin());
+        String jwtToken = jwtUtils.generateToken(login);
+        String refreshToken = jwtUtils.generateRefreshToken(login);
 
         return new AuthResponse(jwtToken, refreshToken);
     }
@@ -60,11 +63,11 @@ public class UserService {
         return null;
     }
 
-    public boolean register(RegistrationRequest registrationRequest) {
+    public AuthResponse register(RegistrationRequest registrationRequest) {
         if (userRepository.existsByUsername(registrationRequest.getLogin())) {
-            return false;
+            return null;
         }
-
+        System.out.println(21432);
         User user = new User();
         user.setUsername(registrationRequest.getLogin());
         user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
@@ -75,7 +78,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return true;
+        return login(registrationRequest.getLogin(), registrationRequest.getPassword());
     }
 
 
