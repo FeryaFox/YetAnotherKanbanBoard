@@ -3,7 +3,7 @@ services:
 
   postgres:
     image: postgres:15
-    container_name: postgres
+    container_name: postgresYAKB
     ports:
       - "5431:5432" # Порт PostgreSQL
     environment:
