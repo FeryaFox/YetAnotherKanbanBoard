@@ -22,7 +22,10 @@ public class BoardMapper {
                 board.getColumns().stream()
                         .map(this::toDto)
                         .collect(Collectors.toSet()),
-                toDto(board.getBoardOwner())
+                toDto(board.getBoardOwner()),
+                board.getAccessibleBoards().stream()
+                        .map(this::toDto)
+                        .collect(Collectors.toSet())
         );
     }
 

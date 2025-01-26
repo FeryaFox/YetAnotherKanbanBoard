@@ -3,6 +3,7 @@ package ru.feryafox.yetanotherkanbanboard.models.board;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Value;
+import ru.feryafox.yetanotherkanbanboard.models.card.ResponsibleUserDto;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,4 +28,7 @@ public class BoardInfoDto implements Serializable {
 
     @Schema(description = "Владелец доски")
     UserBoardInfoDto boardOwner;
+
+    @Schema(description = "Имеют доступ")
+    Set<UserBoardInfoDto> accessibleBoards ;
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.feryafox.yetanotherkanbanboard.entities.*;
 import ru.feryafox.yetanotherkanbanboard.models.card.CreateCardDto;
 import ru.feryafox.yetanotherkanbanboard.models.card.MoveCardDto;
+import ru.feryafox.yetanotherkanbanboard.models.card.ResponsibleUserDto;
 import ru.feryafox.yetanotherkanbanboard.models.card.UpdateCardDto;
 import ru.feryafox.yetanotherkanbanboard.repositories.BoardRepository;
 import ru.feryafox.yetanotherkanbanboard.repositories.CardRepository;
@@ -101,6 +102,9 @@ public class CardService {
 
     @Transactional
     public void deleteCard(Long cardId, String username) {
+
+       validateAccess(cardId, username);
+
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new IllegalArgumentException("Card not found"));
 
@@ -119,6 +123,26 @@ public class CardService {
         columnRepository.save(column);
     }
 
+    public ResponsibleUserDto setResponsible(String responsibleUsername, String username, Long cardId) {
+        validateAccess(cardId, username);
+
+        User user = getUser(responsibleUsername);
+
+        Card card = getCard(cardId);
+
+        card.getUserResponsible().add(user);
+
+        Board board = card.getColumn().getBoard();
+
+        cardRepository.save(card);
+
+        board.getAccessibleBoards().add(user);
+
+        boardRepository.save(board);
+
+        return ResponsibleUserDto.from(user, card);
+    }
+
     private Column getColumn(Long columnId) {
         return columnRepository.findById(columnId).orElseThrow(
                 () -> new IllegalArgumentException("Column does not exist")
@@ -128,6 +152,18 @@ public class CardService {
     private Card getCard(Long id) {
         return cardRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("Card does not exist")
+        );
+    }
+
+    private User getUser(String username) {
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new IllegalArgumentException("User does not exist")
+        );
+    }
+
+    private Board getBoard(Long boardId) {
+        return boardRepository.findById(boardId).orElseThrow(
+                () -> new IllegalArgumentException("Board does not exist")
         );
     }
 
