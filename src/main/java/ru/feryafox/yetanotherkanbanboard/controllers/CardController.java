@@ -44,4 +44,10 @@ public class CardController {
         ResponsibleUserDto responsibleUserDto = cardService.setResponsible(setResponsibleDto.getUsername(), userDetails.getUsername(), id);
         return new ResponseEntity<>(responsibleUserDto, HttpStatus.CREATED);
     }
+
+    @DeleteMapping("/{id}/responsible")
+    public ResponseEntity<?> deleteResponsibleCard(@RequestBody DeleteResponsibleUserDto deleteResponsibleUserDto, @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        cardService.deleteResponsible(deleteResponsibleUserDto.getUsername(), userDetails.getUsername(), id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

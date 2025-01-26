@@ -129,7 +129,6 @@ public class CardService {
         User user = getUser(responsibleUsername);
 
         Card card = getCard(cardId);
-
         card.getUserResponsible().add(user);
 
         Board board = card.getColumn().getBoard();
@@ -141,6 +140,16 @@ public class CardService {
         boardRepository.save(board);
 
         return ResponsibleUserDto.from(user, card);
+    }
+
+    public void deleteResponsible(String responsibleUsername, String username, Long cardId) {
+        validateAccess(cardId, username);
+        User user = getUser(responsibleUsername);
+
+        Card card = getCard(cardId);
+        card.getUserResponsible().remove(user);
+
+        cardRepository.save(card);
     }
 
     private Column getColumn(Long columnId) {
