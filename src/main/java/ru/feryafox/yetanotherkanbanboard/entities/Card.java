@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,6 +45,16 @@ public class Card {
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     @ToString.Exclude
     private Set<User> userResponsible = new LinkedHashSet<>();
+
+    @jakarta.persistence.Column(name = "created_at", nullable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
 
     @Override
     public final boolean equals(Object o) {
