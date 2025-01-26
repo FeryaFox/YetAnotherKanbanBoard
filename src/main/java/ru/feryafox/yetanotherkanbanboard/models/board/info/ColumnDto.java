@@ -1,4 +1,4 @@
-package ru.feryafox.yetanotherkanbanboard.models.board;
+package ru.feryafox.yetanotherkanbanboard.models.board.info;
 
 import lombok.Value;
 import ru.feryafox.yetanotherkanbanboard.entities.Column;

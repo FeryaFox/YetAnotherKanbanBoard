@@ -8,7 +8,7 @@ import ru.feryafox.yetanotherkanbanboard.components.mapper.BoardMapper;
 import ru.feryafox.yetanotherkanbanboard.entities.Board;
 import ru.feryafox.yetanotherkanbanboard.entities.Column;
 import ru.feryafox.yetanotherkanbanboard.entities.User;
-import ru.feryafox.yetanotherkanbanboard.models.board.BoardInfoDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.BoardInfoDto;
 import ru.feryafox.yetanotherkanbanboard.models.board.CreateBoardDto;
 import ru.feryafox.yetanotherkanbanboard.repositories.BoardRepository;
 import ru.feryafox.yetanotherkanbanboard.repositories.UserRepository;
@@ -84,4 +84,19 @@ public class BoardService {
         boardRepository.save(board);
     }
 
+    public void deleteAccessibleToBoard(Long boardId, String username, String usernameToDelete) {
+       userService.isBoardOwner(boardId, username);
+
+       Board board = boardRepository.findById(boardId).orElseThrow(
+               () -> new IllegalArgumentException("Board not found")
+       );
+
+       User user = userRepository.findUserByUsername(usernameToDelete);
+
+       if (user == null) throw new AccessDeniedException("User not found");
+
+       board.getAccessibleBoards().remove(user);
+
+       boardRepository.save(board);
+    }
 }

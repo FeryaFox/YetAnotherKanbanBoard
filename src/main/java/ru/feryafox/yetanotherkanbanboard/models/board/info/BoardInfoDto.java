@@ -1,12 +1,10 @@
-package ru.feryafox.yetanotherkanbanboard.models.board;
+package ru.feryafox.yetanotherkanbanboard.models.board.info;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Value;
-import ru.feryafox.yetanotherkanbanboard.models.card.ResponsibleUserDto;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 /**

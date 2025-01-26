@@ -1,8 +1,7 @@
-package ru.feryafox.yetanotherkanbanboard.models.board;
+package ru.feryafox.yetanotherkanbanboard.models.board.info;
 
 import lombok.Value;
 import ru.feryafox.yetanotherkanbanboard.entities.Card;
-import ru.feryafox.yetanotherkanbanboard.entities.User;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

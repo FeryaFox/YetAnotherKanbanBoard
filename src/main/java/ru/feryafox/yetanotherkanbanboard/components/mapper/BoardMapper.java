@@ -5,10 +5,10 @@ import ru.feryafox.yetanotherkanbanboard.entities.Board;
 import ru.feryafox.yetanotherkanbanboard.entities.Card;
 import ru.feryafox.yetanotherkanbanboard.entities.Column;
 import ru.feryafox.yetanotherkanbanboard.entities.User;
-import ru.feryafox.yetanotherkanbanboard.models.board.BoardInfoDto;
-import ru.feryafox.yetanotherkanbanboard.models.board.CardDto;
-import ru.feryafox.yetanotherkanbanboard.models.board.ColumnDto;
-import ru.feryafox.yetanotherkanbanboard.models.board.UserBoardInfoDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.BoardInfoDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.CardDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.ColumnDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.UserBoardInfoDto;
 
 import java.util.stream.Collectors;
 

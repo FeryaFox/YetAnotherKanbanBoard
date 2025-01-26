@@ -1,4 +1,4 @@
-package ru.feryafox.yetanotherkanbanboard.models.board;
+package ru.feryafox.yetanotherkanbanboard.models.board.info;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

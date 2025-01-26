@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import ru.feryafox.yetanotherkanbanboard.entities.Board;
-import ru.feryafox.yetanotherkanbanboard.models.board.BoardInfoDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.DeleteAccessibleToBoardDto;
+import ru.feryafox.yetanotherkanbanboard.models.board.info.BoardInfoDto;
 import ru.feryafox.yetanotherkanbanboard.models.board.CreateBoardDto;
 import ru.feryafox.yetanotherkanbanboard.models.board.UpdateBoardTitleDto;
 import ru.feryafox.yetanotherkanbanboard.services.BoardService;
@@ -36,6 +36,12 @@ public class BoardController {
    @PatchMapping("/{id}")
    public ResponseEntity<?> updateBoardTitle(@AuthenticationPrincipal UserDetails userDetails, @PathVariable long id, @RequestBody UpdateBoardTitleDto updateBoardTitleDto) {
         boardService.updateBoardTitle(id, updateBoardTitleDto.getTitle(), userDetails);
+        return ResponseEntity.noContent().build();
+   }
+
+   @DeleteMapping("/{id}/accessible")
+   public ResponseEntity<?> deleteBoardAccessible(@RequestBody DeleteAccessibleToBoardDto deleteAccessibleToBoardDto, @AuthenticationPrincipal UserDetails userDetails, @PathVariable long id) {
+        boardService.deleteAccessibleToBoard(id, userDetails.getUsername(), deleteAccessibleToBoardDto.getUsername());
         return ResponseEntity.noContent().build();
    }
 }
