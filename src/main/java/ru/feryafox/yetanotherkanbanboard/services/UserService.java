@@ -1,6 +1,7 @@
 package ru.feryafox.yetanotherkanbanboard.services;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,8 +42,9 @@ public class UserService {
     private final IpGetter ipGetter;
     private final RefreshTokenRepository refreshTokenRepository;
     private final AppConfig appConfig;
+    private final DaoService daoService;
 
-    public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, UserRepository userRepository, BoardRepository boardRepository, CardRepository cardRepository, IpGetter ipGetter, RefreshTokenRepository refreshTokenRepository, AppConfig appConfig) {
+    public UserService(AuthenticationManager authenticationManager, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, UserRepository userRepository, BoardRepository boardRepository, CardRepository cardRepository, IpGetter ipGetter, RefreshTokenRepository refreshTokenRepository, AppConfig appConfig, DaoService daoService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
@@ -52,14 +54,11 @@ public class UserService {
         this.ipGetter = ipGetter;
         this.refreshTokenRepository = refreshTokenRepository;
         this.appConfig = appConfig;
+        this.daoService = daoService;
     }
 
     public AuthResponse login(LoginRequest loginRequest, String userAgent, HttpServletRequest request) throws MissingUserAgentException {
 
-        if (userAgent == null || userAgent.isEmpty()) {
-            String ip = ipGetter.getClientIp(request);
-            throw new MissingUserAgentException(ip);
-        }
         return login(loginRequest.getLogin(), loginRequest.getPassword(), userAgent);
     }
 
@@ -116,17 +115,32 @@ public class UserService {
         return new AuthResponse(jwtToken);
     }
 
-    public AuthResponse refresh(String authorization,String userAgent) {
-        String refreshToken = refreshRequest.getRefreshToken();
-        if (jwtUtils.validateToken(refreshToken)) {
-            String username = jwtUtils.getUsernameFromToken(refreshToken);
-            String newToken = jwtUtils.generateToken(username);
-            return new AuthResponse(refreshToken);
+    @Transactional
+    public AuthResponse refresh(String authorization, String userAgent, HttpServletRequest request) throws MissingUserAgentException {
+        checkUserAgent(userAgent, request);
+        String username = jwtUtils.getUsernameFromExpiredToken(jwtUtils.getTokenFromHeader(authorization));
+
+        RefreshToken refreshToken = getRefreshToken(username);
+
+        if (jwtUtils.validateToken(refreshToken.getToken())){
+            refreshToken.setToken(jwtUtils.generateRefreshToken(username, Set.of()));
+            refreshTokenRepository.save(refreshToken);
+            return new AuthResponse(jwtUtils.generateToken(username));
         }
         return null;
+//        String refreshToken = refreshRequest.getRefreshToken();
+//        if (jwtUtils.validateToken(refreshToken)) {
+//            String username = jwtUtils.getUsernameFromToken(refreshToken);
+//            String newToken = jwtUtils.generateToken(username);
+//            return new AuthResponse(refreshToken);
+//        }
+//        return null;
     }
 
-    public AuthResponse register(RegistrationRequest registrationRequest, String userAgent) {
+    public AuthResponse register(RegistrationRequest registrationRequest, String userAgent, HttpServletRequest request) throws MissingUserAgentException {
+
+        checkUserAgent(userAgent, request);
+
         if (userRepository.existsByUsername(registrationRequest.getLogin())) {
             return null;
         }
@@ -186,5 +200,12 @@ public class UserService {
 
     private RefreshToken getRefreshToken(String username) {
         return refreshTokenRepository.findByUser_Username(username).orElse(null);
+    }
+
+    private void checkUserAgent(String userAgent, HttpServletRequest request) throws MissingUserAgentException {
+        if (userAgent == null || userAgent.isEmpty()) {
+            String ip = ipGetter.getClientIp(request);
+            throw new MissingUserAgentException(ip);
+        }
     }
 }

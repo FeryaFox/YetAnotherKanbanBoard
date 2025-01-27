@@ -65,6 +65,22 @@ public class JwtUtils {
         return (Set<String>) claims.get("userAgents");
     }
 
+    public String getUsernameFromExpiredToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        } catch (JwtException e) {
+            throw new RuntimeException("Error parsing JWT token", e);
+        }
+    }
+
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -85,5 +101,9 @@ public class JwtUtils {
             log.debug("JWT claims string is empty: {}", e.getMessage());
             throw e;
         }
+    }
+
+    public String getTokenFromHeader(String authHeader) {
+        return authHeader.substring(7);
     }
 }

@@ -33,6 +33,7 @@ public class AuthControllerAdvice {
     })
     @ExceptionHandler(MissingUserAgentException.class)
     public ResponseEntity<?> handleMissingUserAgentException(MissingUserAgentException e) {
+        System.out.println(11);
         return new ResponseEntity<>(MissingUserAgentException.MESSAGE, HttpStatus.BAD_REQUEST);
     }
 }

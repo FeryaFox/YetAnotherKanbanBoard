@@ -27,9 +27,10 @@ public class CardService {
     private final ColumnService columnService;
     private final CardRepository cardRepository;
     private final UserService userService;
+    private final DaoService daoService;
 
     public CardService(BoardService boardService, UserRepository userRepository, BoardRepository boardRepository, ColumnRepository columnRepository, ColumnService columnService,
-                       CardRepository cardRepository, UserService userService) {
+                       CardRepository cardRepository, UserService userService, DaoService daoService) {
         this.boardService = boardService;
         this.userRepository = userRepository;
         this.boardRepository = boardRepository;
@@ -37,6 +38,7 @@ public class CardService {
         this.columnService = columnService;
         this.cardRepository = cardRepository;
         this.userService = userService;
+        this.daoService = daoService;
     }
 
     public Long createCard(CreateCardDto createCardDto, String username){
@@ -81,10 +83,10 @@ public class CardService {
 
         validateAccess(cardId, moveCardDto.getNewColumn(), username);
 
-        Card card = getCard(cardId);
+        Card card = daoService.getCard(cardId);
 
         Column oldColumn = card.getColumn();
-        Column newColumn = getColumn(moveCardDto.getNewColumn());
+        Column newColumn = daoService.getColumn(moveCardDto.getNewColumn());
 
         normalizePositions(oldColumn);
         if (!oldColumn.equals(newColumn)) {
@@ -126,9 +128,9 @@ public class CardService {
     public ResponsibleUserDto setResponsible(String responsibleUsername, String username, Long cardId) {
         validateAccess(cardId, username);
 
-        User user = getUser(responsibleUsername);
+        User user = daoService.getUser(responsibleUsername);
 
-        Card card = getCard(cardId);
+        Card card = daoService.getCard(cardId);
         card.getUserResponsible().add(user);
 
         Board board = card.getColumn().getBoard();
@@ -144,37 +146,14 @@ public class CardService {
 
     public void deleteResponsible(String responsibleUsername, String username, Long cardId) {
         validateAccess(cardId, username);
-        User user = getUser(responsibleUsername);
+        User user = daoService.getUser(responsibleUsername);
 
-        Card card = getCard(cardId);
+        Card card = daoService.getCard(cardId);
         card.getUserResponsible().remove(user);
 
         cardRepository.save(card);
     }
 
-    private Column getColumn(Long columnId) {
-        return columnRepository.findById(columnId).orElseThrow(
-                () -> new IllegalArgumentException("Column does not exist")
-        );
-    }
-
-    private Card getCard(Long id) {
-        return cardRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Card does not exist")
-        );
-    }
-
-    private User getUser(String username) {
-        return userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException("User does not exist")
-        );
-    }
-
-    private Board getBoard(Long boardId) {
-        return boardRepository.findById(boardId).orElseThrow(
-                () -> new IllegalArgumentException("Board does not exist")
-        );
-    }
 
     private void updateCardPositions(Column oldColumn, Column newColumn, Integer oldPosition, Integer newPosition) {
         if (oldColumn.equals(newColumn)) {

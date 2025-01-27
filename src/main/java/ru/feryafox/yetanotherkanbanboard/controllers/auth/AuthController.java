@@ -49,7 +49,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
             @RequestBody LoginRequest loginRequest,
             HttpServletRequest request
     ) throws MissingUserAgentException {
@@ -58,21 +58,23 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
-            @RequestHeader(value = "User-Agent") String userAgent,
-            @RequestHeader(value = "Authorization") String authorization
-            ) {
-        AuthResponse authResponse = userService.refresh(authorization, userAgent);
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
+            @RequestHeader(value = "Authorization") String authorization,
+            HttpServletRequest request
+            ) throws MissingUserAgentException {
+        AuthResponse authResponse = userService.refresh(authorization, userAgent, request);
+
         if (authResponse != null) return ResponseEntity.ok(authResponse);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
-            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent,
             @RequestBody RegistrationRequest registrationRequest,
             HttpServletRequest request
-    ) {
-        AuthResponse authResponse = userService.register(registrationRequest, userAgent);
+    ) throws MissingUserAgentException {
+        AuthResponse authResponse = userService.register(registrationRequest, userAgent, request);
         if (authResponse == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username is already taken");
         }
