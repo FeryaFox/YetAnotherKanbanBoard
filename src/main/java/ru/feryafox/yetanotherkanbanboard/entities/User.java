@@ -73,6 +73,11 @@ public class User implements UserDetails {
     @ToString.Exclude
     private Set<Card> cardsResponsibled = new LinkedHashSet<>();
 
+    @ToString.Exclude
+    @OneToOne
+    @JoinColumn(name = "refresh_token_id")
+    private RefreshToken refreshToken;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return AuthorityUtils.commaSeparatedStringToAuthorityList(roles);

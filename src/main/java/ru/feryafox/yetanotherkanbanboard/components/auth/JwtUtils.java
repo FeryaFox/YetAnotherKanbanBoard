@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -15,10 +15,10 @@ public class JwtUtils {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.jwtExpirationMs}")
+    @Value("${jwt.jwt-expiration-ms}")
     private int jwtExpirationMs;
 
-    @Value("${jwt.refreshTokenExpirationMs}")
+    @Value("${jwt.refresh-token-expiration-ms}")
     private int refreshTokenExpirationMs;
 
     private Key getSigningKey() {
@@ -34,12 +34,15 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String username, Set<String> userAgents) {
+//        List<String> userAgents = List.of(userAgent);
+
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .claim("userAgents", userAgents)
                 .compact();
     }
 
@@ -50,6 +53,16 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public Set<String> getUserAgentsFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return (Set<String>) claims.get("userAgents");
     }
 
     public boolean validateToken(String token) {

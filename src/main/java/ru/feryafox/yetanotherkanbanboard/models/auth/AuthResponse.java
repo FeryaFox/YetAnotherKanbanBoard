@@ -8,9 +8,8 @@ import lombok.Data;
 @AllArgsConstructor
 @Schema(description = "Токены после авторизации")
 public class AuthResponse {
+    public static final String JSON_EXAMPLE = "{\"token\":\"" + "eefefefeffefeef==" + "\"}";
+
     @Schema(description = "Токен")
     private String token;
-
-    @Schema(description = "Рефреш токен")
-    private String refreshToken;
 }
