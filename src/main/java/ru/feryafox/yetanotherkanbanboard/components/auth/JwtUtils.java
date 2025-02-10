@@ -62,7 +62,7 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return (Set<String>) claims.get("userAgents");
+        return Set.copyOf((List<String>) claims.get("userAgents"));
     }
 
     public String getUsernameFromExpiredToken(String token) {
@@ -76,7 +76,7 @@ public class JwtUtils {
         } catch (ExpiredJwtException e) {
             return e.getClaims().getSubject();
         } catch (JwtException e) {
-            throw new RuntimeException("Error parsing JWT token", e);
+            throw e;
         }
     }
 

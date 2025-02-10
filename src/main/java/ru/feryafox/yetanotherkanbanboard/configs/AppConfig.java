@@ -13,5 +13,5 @@ public class AppConfig {
     private String secret;
     private Long jwtExpirationMs;
     private Long refreshTokenExpirationMs;
-    private Integer maxSessions;
+    private Integer maxSession;
 }

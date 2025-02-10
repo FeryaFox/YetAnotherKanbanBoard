@@ -1,5 +1,7 @@
 package ru.feryafox.yetanotherkanbanboard.services;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.Value;
@@ -28,6 +30,8 @@ import ru.feryafox.yetanotherkanbanboard.repositories.BoardRepository;
 import ru.feryafox.yetanotherkanbanboard.repositories.RefreshTokenRepository;
 import ru.feryafox.yetanotherkanbanboard.repositories.UserRepository;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -74,67 +78,120 @@ public class UserService {
         RefreshToken refreshToken = getRefreshToken(login);
         // Если токена нет, то создадим его
 
+//        if (refreshToken == null) {
+//            refreshToken = new RefreshToken();
+//            refreshToken.setUser(user);
+//        }
+
+//        String jwtRefreshToken = jwtUtils.generateRefreshToken(login, Set.of());
+//        refreshToken.setToken(jwtRefreshToken);
+//
+//        refreshTokenRepository.save(refreshToken);
+
         if (refreshToken == null) {
-            refreshToken = new RefreshToken();
-            refreshToken.setUser(user);
+            // Сгенерируем Refresh Токен
+            String jwtRefreshToken = jwtUtils.generateRefreshToken(login, Set.of());
+            RefreshToken.RefreshTokenBuilder refreshTokenBuilder = RefreshToken.builder();
+
+            refreshTokenBuilder.user(user);
+            refreshTokenBuilder.token(jwtRefreshToken);
+            // Сохраним Refresh токен в БД
+            refreshToken = refreshTokenRepository.save(refreshTokenBuilder.build());
         }
 
-        String jwtRefreshToken = jwtUtils.generateRefreshToken(login, Set.of());
+        String jwtRefreshToken = refreshToken.getToken();
 
-        refreshToken.setToken(jwtRefreshToken);
+        try {
+            // проверяем валидность Refresh токена
+            if (jwtUtils.validateToken(jwtRefreshToken)) {
+                // если он валидный, то получаем UserAgents, которые в нем
+                var userAgents = jwtUtils.getUserAgentsFromToken(jwtRefreshToken);
+                System.out.println(userAgents);
 
-        refreshTokenRepository.save(refreshToken);
-//        if (refreshToken == null) {
-//            String jwtRefreshToken = jwtUtils.generateRefreshToken(login, Set.of());
-//            RefreshToken.RefreshTokenBuilder refreshTokenBuilder = RefreshToken.builder();
-//
-//            refreshTokenBuilder.user(user);
-//            refreshTokenBuilder.token(jwtRefreshToken);
-//            refreshToken = refreshTokenRepository.save(refreshTokenBuilder.build());
-//        }
-
-//        String jwtRefreshToken = refreshToken.getToken();
-
-//        try {
-//            //
-//            if (jwtUtils.validateToken(jwtRefreshToken)) {
-//                var userAgents = jwtUtils.getUserAgentsFromToken(jwtRefreshToken);
-//                if (userAgents.size() > appConfig.getMaxSessions()) {
-//                    userAgents = Set.of(userAgent);
-//                } else {
-//                    userAgents.add(userAgent);
-//                }
-//
-//                jwtRefreshToken = jwtUtils.generateRefreshToken(login, userAgents);
-//            }
-//        }
+                if (userAgents.size() > appConfig.getMaxSession()) {
+                    // Если их больше, чем максимальное количество, то сбрасываем все
+                    userAgents = new HashSet<>(Set.of(userAgent));
+                } else {
+                    userAgents = new HashSet<>(userAgents);
+                    userAgents.add(userAgent);
+                }
+                // Генерируем новый токен
+                jwtRefreshToken = jwtUtils.generateRefreshToken(login, userAgents);
+            }
+        }
+        catch (ExpiredJwtException e){
+            jwtRefreshToken = jwtUtils.generateRefreshToken(login, Set.of(userAgent));
+        }
 
         String jwtToken = jwtUtils.generateToken(login);
 //        String refreshToken = jwtUtils.generateRefreshToken(login);
+
+
+        refreshToken.setToken(jwtRefreshToken);
+        refreshTokenRepository.save(refreshToken);
 
         return new AuthResponse(jwtToken);
     }
 
     @Transactional
     public AuthResponse refresh(String authorization, String userAgent, HttpServletRequest request) throws MissingUserAgentException {
-        checkUserAgent(userAgent, request);
-        String username = jwtUtils.getUsernameFromExpiredToken(jwtUtils.getTokenFromHeader(authorization));
+        checkUserAgent(userAgent, request); // Проверяем, что userAgent передан
 
+        // Извлекаем токен из заголовка и получаем username
+        String expiredToken = jwtUtils.getTokenFromHeader(authorization);
+        String username;
+        try {
+            username = jwtUtils.getUsernameFromExpiredToken(expiredToken);
+        } catch (JwtException e) {
+            log.warn("Invalid or malformed expired token: {}", e.getMessage());
+            return null;
+        }
+
+        // Получаем RefreshToken из базы
         RefreshToken refreshToken = getRefreshToken(username);
 
-        if (jwtUtils.validateToken(refreshToken.getToken())){
-            refreshToken.setToken(jwtUtils.generateRefreshToken(username, Set.of()));
-            refreshTokenRepository.save(refreshToken);
-            return new AuthResponse(jwtUtils.generateToken(username));
+        if (refreshToken == null) {
+            log.warn("Refresh token not found for user: {}", username);
+            return null; // Если refresh-токен отсутствует, возвращаем null
         }
-        return null;
-//        String refreshToken = refreshRequest.getRefreshToken();
-//        if (jwtUtils.validateToken(refreshToken)) {
-//            String username = jwtUtils.getUsernameFromToken(refreshToken);
-//            String newToken = jwtUtils.generateToken(username);
-//            return new AuthResponse(refreshToken);
-//        }
-//        return null;
+
+        Set<String> userAgents;
+        try {
+            // Ключевой момент: создаем изменяемый HashSet вместо неизменяемого Set.copyOf
+            userAgents = new HashSet<>(jwtUtils.getUserAgentsFromToken(refreshToken.getToken()));
+        } catch (JwtException e) {
+            log.warn("Invalid refresh token for user {}: {}", username, e.getMessage());
+            return null;
+        }
+
+        // Проверяем, содержится ли текущий User-Agent в refreshToken
+        if (!userAgents.contains(userAgent)) {
+            log.warn("Unauthorized User-Agent access attempt for user: {}", username);
+            throw new MissingUserAgentException("User-Agent не найден в refresh токене");
+        }
+
+        // Проверяем валидность refresh токена
+        try {
+            jwtUtils.validateToken(refreshToken.getToken());
+        } catch (ExpiredJwtException e) {
+            log.info("Refresh token expired for user: {}, requiring re-authentication", username);
+            return null; // Если refresh-токен просрочен, требуем повторного входа
+        }
+
+        // Генерируем новый Access-токен
+        String newAccessToken = jwtUtils.generateToken(username);
+
+        // Добавляем новый userAgent (если он новый)
+        userAgents.add(userAgent);
+
+        // Создаем новый Refresh-токен
+        String newRefreshToken = jwtUtils.generateRefreshToken(username, userAgents);
+
+        // Обновляем Refresh-токен в БД
+        refreshToken.setToken(newRefreshToken);
+        refreshTokenRepository.save(refreshToken);
+
+        return new AuthResponse(newAccessToken);
     }
 
     public AuthResponse register(RegistrationRequest registrationRequest, String userAgent, HttpServletRequest request) throws MissingUserAgentException {
